@@ -12,7 +12,7 @@
 #' @export
 #'
 #' @examples
-media_comp_plot <- function(analytes = c("GLC3B", "GLN2B", "GLU2B", "LAC2B"),
+media_comp_plot <- function(data, analytes = c("GLC3B", "GLN2B", "GLU2B", "LAC2B"),
                     X_sign = c(TRUE, TRUE, FALSE, FALSE),
                     rep_num = 2,
                     analytes_baseline = c(1,1,1,1),
@@ -30,11 +30,12 @@ media_comp_plot <- function(analytes = c("GLC3B", "GLN2B", "GLU2B", "LAC2B"),
     # Change order
     d$mM_val <- factor(d$mM_val, levels = plt_x_axis)
 
-    plt <- ggplot(data = d, aes(x = mM_val, y = X_mean))+
-      geom_bar(aes(x= mM_val, y = X_mean, fill = mM_val), stat = "identity") +
-      geom_point(aes(x = mM_val, y = X), shape = 1)+
-      theme_bw()+
-      labs(x = "Exp", y = "Value", title = analyte)
+    plt <- ggplot2::ggplot(data = d, ggplot2::aes(x = mM_val, y = X_mean))+
+      ggplot2::geom_bar(ggplot2::aes(x= mM_val, y = X_mean, fill = mM_val),
+                        stat = "identity") +
+      ggplot2::geom_point(ggplot2::aes(x = mM_val, y = X), shape = 1)+
+      ggplot2::theme_bw()+
+      ggplot2::labs(x = "Exp", y = "Value", title = analyte)
 
     print(plt)
   }
@@ -42,7 +43,7 @@ media_comp_plot <- function(analytes = c("GLC3B", "GLN2B", "GLU2B", "LAC2B"),
 
 
 
-#' Title
+#' Format process
 #'
 #' @param d
 #'
@@ -62,7 +63,7 @@ format_process <- function(d) {
   return(list(d = d, d_top = d_top))
 }
 
-#' Title
+#' values_process
 #'
 #' @param d
 #' @param rep_num
@@ -78,15 +79,15 @@ format_process <- function(d) {
 value_process <- function(d, rep_num, analyte, analytes, X_sign, d_top) {
   val <- d$X
   val <- as.numeric(val)
-  val <- na.fill(val, 0)
+  val <- zoo::na.fill(val, 0)
   top_val <- suppressWarnings(as.numeric(d_top$X))
   d$X <- top_val - val
   if (!X_sign[which(analytes == analyte)]) d$X = -d$X
 
   d <- d %>%
-    group_by(mM_val) %>%
-    mutate(X_mean = mean(X)/rep_num) %>%
-    ungroup()
+    dplyr::group_by(mM_val) %>%
+    dplyr::mutate(X_mean = mean(X)/rep_num) %>%
+    dplyr::ungroup()
   return(d)
 }
 

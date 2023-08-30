@@ -2,7 +2,7 @@
 % Please edit documentation in R/bio_analyzier.R
 \name{value_process}
 \alias{value_process}
-\title{Title}
+\title{values_process}
 \usage{
 value_process(d, rep_num, analyte, analytes, X_sign, d_top)
 }
@@ -10,5 +10,5 @@ value_process(d, rep_num, analyte, analytes, X_sign, d_top)
 \item{d_top}{}
 }
 \description{
-Title
+values_process
 }

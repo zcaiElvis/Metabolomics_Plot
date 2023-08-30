@@ -2,7 +2,7 @@
 % Please edit documentation in R/bio_analyzier.R
 \name{format_process}
 \alias{format_process}
-\title{Title}
+\title{Format process}
 \usage{
 format_process(d)
 }
@@ -10,5 +10,5 @@ format_process(d)
 \item{d}{}
 }
 \description{
-Title
+Format process
 }

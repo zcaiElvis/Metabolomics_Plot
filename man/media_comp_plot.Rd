@@ -5,6 +5,7 @@
 \title{Title}
 \usage{
 media_comp_plot(
+  data,
   analytes = c("GLC3B", "GLN2B", "GLU2B", "LAC2B"),
   X_sign = c(TRUE, TRUE, FALSE, FALSE),
   rep_num = 2,
