@@ -1,6 +1,9 @@
+ion_count <- readxl::read_xlsx("data/Datacorrected_20230419_ET.xlsx",
+                               range = "A40:Y75")
 
-data <- read.csv("data/20230213_CEDEX-BIO-HT-Archive-2_13_2023-2_13_2023.txt",
-                 sep = "\t", header = TRUE)
+iso_abun <- readxl::read_xlsx("data/Datacorrected_20230419_ET.xlsx",
+                              range = "A78:Z284")
 
 
-media_comp_plot(data, analytes = "GLC3B")
+
+plot_abundance(ion_count, iso_abun, group_length = 8, total_length = 24)
