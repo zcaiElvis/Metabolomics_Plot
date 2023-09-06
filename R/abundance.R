@@ -15,6 +15,8 @@ plot_abundance <- function(ion_count, iso_abun,
                            group_length = 8, total_length = 24,
                            xtick = NA,
                            offset = FALSE){
+
+
   ions <- iso_abun$Ion
   # Add identifying columns
   ion_count$Fragment_type <- split_string_take_first(ion_count$Fragment, by = " ")
@@ -24,11 +26,12 @@ plot_abundance <- function(ion_count, iso_abun,
 
   ion_type <- iso_abun$Ion_type
 
+
   # Multiply ion_count and iso_abun dfs
   iso_abun <- multiply_dfs(ion_count, iso_abun)
 
   # Aggregate dfs
-  aggr_result <- aggregate_dfs(iso_abun, group_length, total_length)
+  aggr_result <- aggregate_dfs(iso_abun, group_length, total_length, offset)
   aggr_mean <- aggr_result$aggr_mean
   aggr_sem <- aggr_result$aggr_sem
 
@@ -73,6 +76,15 @@ plot_abundance <- function(ion_count, iso_abun,
     df_to_plot$sd[which(df_to_plot$value < 0)] <- NA
     df_to_plot$sd_pos[which(df_to_plot$value < 0)] <- NA
 
+    # xtick
+
+    if(!any(is.na(xtick))){
+      current_varnames <- unlist(lapply(1:8, function(x) paste0("V", as.character(x))))
+      new_varnames <- set_names(as.list(xtick), current_varnames)
+      df_to_plot$variable <- unlist(lapply(df_to_plot$variable, function(x) new_varnames[x]))
+    }
+
+
 
     # Plot
     p <- ggplot2::ggplot(df_to_plot,
@@ -84,6 +96,7 @@ plot_abundance <- function(ion_count, iso_abun,
       ggplot2::ylab("Ion counts")+
       ggplot2::ggtitle(ion_type[start_index[k]])+
       ggplot2::scale_fill_manual(values = color_used)
+
 
     ggplot2::ggsave(paste0("output/", ion_type[start_index[k]], ".png"))
   }
@@ -125,10 +138,12 @@ multiply_dfs <- function(ion_count, iso_abun){
 #' @inheritParams plot_abundance
 #'
 #' @examples
-aggregate_dfs <- function(iso_abun, group_length, total_length){
+aggregate_dfs <- function(iso_abun, group_length, total_length, offset){
   iso_abun <- dplyr::select(iso_abun, -c("Ion", "Ion_type", "Theory"))
   num_subs <- total_length/group_length
   df_start_col_index <- seq(1, total_length, group_length)
+
+  if (offset) offset_values <- iso_abun[,ncol(iso_abun)]
 
   aggr_mean <- matrix(rep(0, nrow(iso_abun)*group_length),
                       nrow = nrow(iso_abun), ncol = group_length)
@@ -138,6 +153,7 @@ aggregate_dfs <- function(iso_abun, group_length, total_length){
     counter = 0
     for(j in 1:group_length){
       rep_entry <- unlist(iso_abun[i, (df_start_col_index + counter)])
+      if (offset) rep_entry - offset_values[i,]
       aggr_mean[i, j] = mean(rep_entry)
       aggr_sem[i, j] = sd(rep_entry)/sqrt(num_subs)
       counter = counter + 1
