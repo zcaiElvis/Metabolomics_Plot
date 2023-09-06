@@ -14,7 +14,8 @@
 plot_abundance <- function(ion_count, iso_abun,
                            group_length = 8, total_length = 24,
                            xtick = NA,
-                           offset = FALSE){
+                           offset = FALSE,
+                           removed_cols = NA){
 
 
   ions <- iso_abun$Ion
@@ -31,7 +32,8 @@ plot_abundance <- function(ion_count, iso_abun,
   iso_abun <- multiply_dfs(ion_count, iso_abun)
 
   # Aggregate dfs
-  aggr_result <- aggregate_dfs(iso_abun, group_length, total_length, offset)
+  aggr_result <- aggregate_dfs(iso_abun, group_length, total_length, offset,
+                               removed_cols)
   aggr_mean <- aggr_result$aggr_mean
   aggr_sem <- aggr_result$aggr_sem
 
@@ -77,7 +79,6 @@ plot_abundance <- function(ion_count, iso_abun,
     df_to_plot$sd_pos[which(df_to_plot$value < 0)] <- NA
 
     # xtick
-
     if(!any(is.na(xtick))){
       current_varnames <- unlist(lapply(1:8, function(x) paste0("V", as.character(x))))
       new_varnames <- set_names(as.list(xtick), current_varnames)
@@ -138,7 +139,7 @@ multiply_dfs <- function(ion_count, iso_abun){
 #' @inheritParams plot_abundance
 #'
 #' @examples
-aggregate_dfs <- function(iso_abun, group_length, total_length, offset){
+aggregate_dfs <- function(iso_abun, group_length, total_length, offset, removed_cols){
   iso_abun <- dplyr::select(iso_abun, -c("Ion", "Ion_type", "Theory"))
   num_subs <- total_length/group_length
   df_start_col_index <- seq(1, total_length, group_length)
@@ -149,13 +150,25 @@ aggregate_dfs <- function(iso_abun, group_length, total_length, offset){
                       nrow = nrow(iso_abun), ncol = group_length)
   aggr_sem <- aggr_mean
 
+  # TODO: make list of removed_cols into tuples (a, b), a is repetition, b is
+  # exp within the repetition
+
   for(i in 1:nrow(iso_abun)){
     counter = 0
     for(j in 1:group_length){
-      rep_entry <- unlist(iso_abun[i, (df_start_col_index + counter)])
+      rep_index <- df_start_col_index + counter
+      rep_entry <- unlist(iso_abun[i, rep_index])
       if (offset) rep_entry - offset_values[i,]
+      if (!is.na(removed_cols)) {
+        check_match <- match(removed_cols, rep_index)
+        check_match <- check_match[!is.na(check_match)]
+        if (length(check_match) != 0) {
+          rep_entry <- rep_entry[-check_match]
+        }
+      }
+
       aggr_mean[i, j] = mean(rep_entry)
-      aggr_sem[i, j] = sd(rep_entry)/sqrt(num_subs)
+      aggr_sem[i, j] = sd(rep_entry)/sqrt(length(rep_entry))
       counter = counter + 1
     }
   }

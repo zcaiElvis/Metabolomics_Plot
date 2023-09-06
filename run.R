@@ -26,7 +26,6 @@ if (!dir.exists("output/")){
 #                               range = "A78:Z284")
 
 
-
 file_loc <- "data/Datacorrected-version-1.xlsx"
 
 ion_count <- readxl::read_xlsx(file_loc,
@@ -41,4 +40,6 @@ iso_abun <- iso_abun[-c(2:24)]
 xtick <- unlist(lapply(1:8, function(x) paste0("Variable_", as.character(x))))
 
 plot_abundance(ion_count, iso_abun, group_length = 8, total_length = 24,
-               offset = TRUE, xtick = xtick)
+               offset = TRUE, xtick = xtick, removed_cols = c(11))
+
+
