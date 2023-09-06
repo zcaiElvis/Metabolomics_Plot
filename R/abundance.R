@@ -12,7 +12,9 @@
 #'
 #' @examples
 plot_abundance <- function(ion_count, iso_abun,
-                           group_length = 8, total_length = 24){
+                           group_length = 8, total_length = 24,
+                           xtick = NA,
+                           offset = FALSE){
   ions <- iso_abun$Ion
   # Add identifying columns
   ion_count$Fragment_type <- split_string_take_first(ion_count$Fragment, by = " ")
@@ -34,7 +36,8 @@ plot_abundance <- function(ion_count, iso_abun,
   na_index <- which(is.na(aggr_mean$V1))
   start_index <- c(1, (na_index + 1))
   end_index <- c((na_index - 1), nrow(aggr_mean))
-  default_palette = scales::hue_pal()(20)
+  default_palette <- scales::hue_pal()(8)
+  default_palette <- c(default_palette, rep("#D3D3D3", 12))
 
 
   for(k in 1:length(start_index)){
@@ -47,7 +50,7 @@ plot_abundance <- function(ion_count, iso_abun,
     # Create group name: M0, M1, ...
     m_size <- k_end - k_start + 1
     group_name <- as.character(0:(m_size - 1)) # Starts with M0
-    group_name <- unlist(lapply(group_name, function (x) paste0("M", x)))
+    group_name <- unlist(lapply(group_name, function (x) paste0("M+", x)))
     color_used <- rev(default_palette[1:m_size])
 
     # Reshape/flatten dataframes
