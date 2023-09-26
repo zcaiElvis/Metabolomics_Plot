@@ -1,3 +1,48 @@
+
+
+#' Title
+#'
+#' @param col_groups
+#' @param ion_count
+#' @param iso_abun
+#' @param save_loc
+#' @param group_length
+#' @param total_length
+#' @param xtick
+#' @param offset
+#' @param removed_cols
+#' @param offset
+#'
+#' @return
+#' @export
+#'
+#' @examples
+plot_multi_abundance <- function(col_groups, ion_count, iso_abun, folder_name,
+                                 group_length = 8, total_length = 24,
+                                 xtick = NA,
+                                 plot_offset = NA){
+
+  # offsets for the first two are 37, 38. plot_offset = list(c(37, 38), c(37, 38))
+
+  for(i in 1:col_groups){
+    group_index <- (2:(total_length + 1)) + (i - 1)*total_length
+    ion_count_sub <- ion_count[c(1, group_index)]
+    iso_abun_sub <- iso_abun[c(1, group_index, ncol(iso_abun))]
+
+    offsets <- unlist(plot_offset[i])
+    offsets <- iso_abun[,offsets, drop = T]
+
+
+    save_loc <- paste0(folder_name, as.character(i), "/")
+
+    plot_abundance(ion_count_sub, iso_abun_sub, save_loc = save_loc, group_length,
+                   total_length, offset = offsets)
+  }
+
+}
+
+
+
 #' Plot the stacked barplot representing the abundance
 #'
 #' @param ion_count ion count data frame
@@ -6,15 +51,16 @@
 #' @param group_length Number of experiments in each repetition. First column contains
 #' names of ions
 #' @param total_length Number of all experiments
-#'
+#' @param xtick Name of X variables
+#' @param offset Can be index or vector of values. If index, then
 #' @return plots stored in output folder
 #' @export
 #'
 #' @examples
-plot_abundance <- function(ion_count, iso_abun,
+plot_abundance <- function(ion_count, iso_abun, save_loc,
                            group_length = 8, total_length = 24,
                            xtick = NA,
-                           offset = FALSE,
+                           offset = NA,
                            removed_cols = NA){
 
 
@@ -30,10 +76,12 @@ plot_abundance <- function(ion_count, iso_abun,
 
   # Multiply ion_count and iso_abun dfs
   iso_abun <- multiply_dfs(ion_count, iso_abun)
+  # offset <- multiply_dfs(ion_count, iso_abun)
+
 
   # Aggregate dfs
-  aggr_result <- aggregate_dfs(iso_abun, group_length, total_length, offset,
-                               removed_cols)
+  aggr_result <- aggregate_dfs(iso_abun, group_length, total_length, NA,
+                               removed_cols) # TODO: subtracting offset is set as NA
   aggr_mean <- aggr_result$aggr_mean
   aggr_sem <- aggr_result$aggr_sem
 
@@ -41,7 +89,7 @@ plot_abundance <- function(ion_count, iso_abun,
   na_index <- which(is.na(aggr_mean$V1))
   start_index <- c(1, (na_index + 1))
   end_index <- c((na_index - 1), nrow(aggr_mean))
-  default_palette <- scales::hue_pal()(8)
+  default_palette <- RColorBrewer::brewer.pal(n = 8, name = 'Pastel1')
   default_palette <- c(default_palette, rep("#D3D3D3", 12))
 
 
@@ -51,6 +99,9 @@ plot_abundance <- function(ion_count, iso_abun,
     k_end <- end_index[k]
     df_iso_mean <- aggr_mean[k_start:k_end, 1:ncol(aggr_mean)]
     df_iso_sem <- aggr_sem[k_start:k_end, 1:ncol(aggr_sem)]
+
+    # df_offset <- offset[k_start:k_end, 1:ncol(offset)]
+    # print(df_offset)
 
     # Create group name: M0, M1, ...
     m_size <- k_end - k_start + 1
@@ -65,6 +116,11 @@ plot_abundance <- function(ion_count, iso_abun,
     df_iso_sem <- reshape2::melt(df_iso_sem) %>%
       dplyr::mutate(Group = rep(group_name, group_length))
 
+    # df_offset <- reshape2::melt(df_offset) %>%
+    #   dplyr::mutate(Group = rep(group_name, ncol(df_offset)))
+    #
+    # print(df_offset)
+
     # Summarize data into dataframe to plot for
     df_to_plot <- df_iso_mean
 
@@ -72,11 +128,21 @@ plot_abundance <- function(ion_count, iso_abun,
       dplyr::mutate(sd = df_iso_sem$value)%>%
       dplyr::group_by(variable) %>%
       dplyr::mutate(Group = factor(Group, levels = rev(group_name))) %>%
+      dplyr::mutate(value = replace(value, value < 0, 0)) %>%
       dplyr::mutate(sd_pos = cumsum(value))
 
+
     # Don't plot error bars for negative values
-    df_to_plot$sd[which(df_to_plot$value < 0)] <- NA
-    df_to_plot$sd_pos[which(df_to_plot$value < 0)] <- NA
+    df_to_plot$sd[which(df_to_plot$value == 0)] <- NA
+    df_to_plot$sd_pos[which(df_to_plot$value == 0)] <- NA
+
+    # df_offset <- df_offset %>%
+    #   dplyr::mutate(sd = NA) %>%
+    #   dplyr::mutate(sd_pos = NA)
+
+    # df_to_plot <- rbind(df_to_plot, df_offset)
+
+    # print(df_to_plot)
 
     # xtick
     if(!any(is.na(xtick))){
@@ -85,7 +151,9 @@ plot_abundance <- function(ion_count, iso_abun,
       df_to_plot$variable <- unlist(lapply(df_to_plot$variable, function(x) new_varnames[x]))
     }
 
+    # print(df_to_plot)
 
+    df_to_plot$variable <- factor(df_to_plot$variable, levels = xtick)
 
     # Plot
     p <- ggplot2::ggplot(df_to_plot,
@@ -95,12 +163,17 @@ plot_abundance <- function(ion_count, iso_abun,
                                           width = 0.3))+
       ggplot2::theme_bw()+
       ggplot2::ylab("Ion counts")+
-      ggplot2::ggtitle(ion_type[start_index[k]])+
-      ggplot2::scale_fill_manual(values = color_used)
+      # ggplot2::ggtitle(ion_type[start_index[k]])+
+      ggplot2::scale_fill_manual(values = color_used)+
+      ggplot2::labs(title = ion_type[start_index[k]])+
+      ggplot2::theme(plot.title = ggplot2::element_text(size = 30),
+                     axis.text.x = ggplot2::element_text(angle = 45, hjust=1))
 
 
-    ggplot2::ggsave(paste0("output/", ion_type[start_index[k]], ".png"))
+    ggplot2::ggsave(paste0("output/", save_loc, ion_type[start_index[k]], ".png"))
+
   }
+
 }
 
 
@@ -144,7 +217,14 @@ aggregate_dfs <- function(iso_abun, group_length, total_length, offset, removed_
   num_subs <- total_length/group_length
   df_start_col_index <- seq(1, total_length, group_length)
 
-  if (offset) offset_values <- iso_abun[,ncol(iso_abun)]
+  if (!all(is.na(offset))) {
+    if (length(offset) < nrow(iso_abun)) { # offset is given as index
+      offset_values <- iso_abun[, offset, drop = TRUE]
+    } else if (length(offset) == nrow(iso_abun)){ # off set is given as values
+      offset_values <- offset
+    }
+    stop("Error in offset")
+  }
 
   aggr_mean <- matrix(rep(0, nrow(iso_abun)*group_length),
                       nrow = nrow(iso_abun), ncol = group_length)
@@ -158,8 +238,8 @@ aggregate_dfs <- function(iso_abun, group_length, total_length, offset, removed_
     for(j in 1:group_length){
       rep_index <- df_start_col_index + counter
       rep_entry <- unlist(iso_abun[i, rep_index])
-      if (offset) rep_entry - offset_values[i,]
-      if (!is.na(removed_cols)) {
+      if (!all(is.na(offset))) rep_entry - offset_values[i]
+      if (!all(is.na(removed_cols))) {
         check_match <- match(removed_cols, rep_index)
         check_match <- check_match[!is.na(check_match)]
         if (length(check_match) != 0) {
