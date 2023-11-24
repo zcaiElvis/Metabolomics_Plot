@@ -75,22 +75,24 @@ plot_abundance <- function(ion_count, iso_abun, save_loc,
 
 
   # Multiply ion_count and iso_abun dfs
-  iso_abun <- multiply_dfs(ion_count, iso_abun)
-  # offset <- multiply_dfs(ion_count, iso_abun)
+  multiplied_dfs <- multiply_dfs(ion_count, iso_abun)
+
 
 
   # Aggregate dfs
-  aggr_result <- aggregate_dfs(iso_abun, group_length, total_length, NA,
+  aggr_result <- aggregate_dfs(multiplied_dfs, group_length, total_length, NA,
                                removed_cols) # TODO: subtracting offset is set as NA
   aggr_mean <- aggr_result$aggr_mean
   aggr_sem <- aggr_result$aggr_sem
+
 
   # Plot
   na_index <- which(is.na(aggr_mean$V1))
   start_index <- c(1, (na_index + 1))
   end_index <- c((na_index - 1), nrow(aggr_mean))
-  default_palette <- RColorBrewer::brewer.pal(n = 8, name = 'Pastel1')
-  default_palette <- c(default_palette, rep("#D3D3D3", 12))
+  default_palette <- RColorBrewer::brewer.pal(n = 7, name = 'Pastel1')
+  default_palette <- c("#e6e6e6", default_palette)
+  default_palette <- c(default_palette, rep("#7b797d", 12))
 
 
   for(k in 1:length(start_index)){
@@ -142,18 +144,13 @@ plot_abundance <- function(ion_count, iso_abun, save_loc,
 
     # df_to_plot <- rbind(df_to_plot, df_offset)
 
-    # print(df_to_plot)
-
     # xtick
     if(!any(is.na(xtick))){
-      current_varnames <- unlist(lapply(1:8, function(x) paste0("V", as.character(x))))
+      current_varnames <- unlist(lapply(1:group_length, function(x) paste0("V", as.character(x))))
       new_varnames <- set_names(as.list(xtick), current_varnames)
       df_to_plot$variable <- unlist(lapply(df_to_plot$variable, function(x) new_varnames[x]))
+      df_to_plot$variable <- factor(df_to_plot$variable, levels = xtick)
     }
-
-    # print(df_to_plot)
-
-    df_to_plot$variable <- factor(df_to_plot$variable, levels = xtick)
 
     # Plot
     p <- ggplot2::ggplot(df_to_plot,
@@ -161,18 +158,21 @@ plot_abundance <- function(ion_count, iso_abun, save_loc,
       ggplot2::geom_bar(position="stack", stat = "identity") +
       ggplot2::geom_errorbar(ggplot2::aes(ymin = sd_pos - sd, ymax = sd_pos + sd,
                                           width = 0.3))+
+      # ggplot2::geom_point()+
       ggplot2::theme_bw()+
-      ggplot2::ylab("Ion counts")+
-      # ggplot2::ggtitle(ion_type[start_index[k]])+
+      ggplot2::ylab("Ion percentage")+
       ggplot2::scale_fill_manual(values = color_used)+
       ggplot2::labs(title = ion_type[start_index[k]])+
       ggplot2::theme(plot.title = ggplot2::element_text(size = 30),
-                     axis.text.x = ggplot2::element_text(angle = 45, hjust=1))
+                     axis.text.x = ggplot2::element_text(angle = 90, hjust=1))
+
 
 
     ggplot2::ggsave(paste0("output/", save_loc, ion_type[start_index[k]], ".png"))
 
   }
+
+  return(multiplied_dfs)
 
 }
 
@@ -230,6 +230,8 @@ aggregate_dfs <- function(iso_abun, group_length, total_length, offset, removed_
                       nrow = nrow(iso_abun), ncol = group_length)
   aggr_sem <- aggr_mean
 
+  aggr_pt <- as.data.frame(matrix(0, nrow = nrow(iso_abun), ncol = group_length))
+
   # TODO: make list of removed_cols into tuples (a, b), a is repetition, b is
   # exp within the repetition
 
@@ -238,17 +240,22 @@ aggregate_dfs <- function(iso_abun, group_length, total_length, offset, removed_
     for(j in 1:group_length){
       rep_index <- df_start_col_index + counter
       rep_entry <- unlist(iso_abun[i, rep_index])
+
+
+      # Check offset colu
       if (!all(is.na(offset))) rep_entry - offset_values[i]
       if (!all(is.na(removed_cols))) {
         check_match <- match(removed_cols, rep_index)
         check_match <- check_match[!is.na(check_match)]
         if (length(check_match) != 0) {
           rep_entry <- rep_entry[-check_match]
+
         }
       }
 
       aggr_mean[i, j] = mean(rep_entry)
       aggr_sem[i, j] = sd(rep_entry)/sqrt(length(rep_entry))
+      # aggr_pt[i, j] = list(rep_entry)
       counter = counter + 1
     }
   }

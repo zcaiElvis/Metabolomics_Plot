@@ -1,0 +1,64 @@
+---
+title: "vignette"
+output: pdf_document
+date: "2023-11-19"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Introduction
+
+This vignette is intended to demonstrate the usage of this package, which is to
+plot the ...
+
+## Setting Up
+Since this package is under heavy construction, make sure to download
+and import the R development tool `devtools` with the following command in order
+to run all the commands
+
+```{r}
+# install.packages("devtools")
+library("devtools")
+library("RcolorBrewer")
+load_all()
+```
+
+Then run the following command to create the `data` and `output` folders. You only
+need to run this once
+
+```{r}
+if (!dir.exists("data/")){
+  dir.create("data/")
+}
+
+if (!dir.exists("output/")){
+  dir.create("output/")
+}
+```
+
+
+## Loading Data
+
+Once the above procedures are completed, move the excel file into the `data` folder.
+Open up the excel file, and fill in the two variables `ion_table_loc` and 
+`iso_table_loc` with the top left and bottom right cell of each table. Make sure
+that the column and row names are also included here.
+
+
+```{r}
+file_loc <- "data/Datacorrected_20231110-ET.xlsx"
+
+ion_table_loc <- "A43:AB81"
+iso_table_loc <- "A84:AC305"
+
+ion_count <- readxl::read_xlsx(file_loc,
+                               range = ion_table_loc)
+
+iso_abun <- readxl::read_xlsx(file_loc,
+                              range = iso_table_loc)
+```
+
+
+###
