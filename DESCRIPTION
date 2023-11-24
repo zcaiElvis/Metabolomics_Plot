@@ -16,7 +16,6 @@ Imports:
     gridExtra,
     magrittr,
     RColorBrewer,
-    RcolorBrewer,
     reshape2,
     scales,
     stringr,

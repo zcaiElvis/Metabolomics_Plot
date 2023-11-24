@@ -2,9 +2,18 @@
 % Please edit documentation in R/abundance.R
 \name{plot_abundance}
 \alias{plot_abundance}
-\title{Plot the stacked barplot representing the abundance}
+\title{Plot the stacked barplot of abundance}
 \usage{
-plot_abundance(ion_count, iso_abun, group_length = 8, total_length = 24)
+plot_abundance(
+  ion_count,
+  iso_abun,
+  save_loc,
+  group_length = 8,
+  total_length = 24,
+  xtick = NA,
+  offset = NA,
+  removed_cols = NA
+)
 }
 \arguments{
 \item{ion_count}{ion count data frame}
@@ -12,14 +21,21 @@ plot_abundance(ion_count, iso_abun, group_length = 8, total_length = 24)
 \item{iso_abun}{mass isotopomer data frame. First column contains all Fragment
 names}
 
-\item{group_length}{Number of experiments in each repetition. First column contains
-names of ions}
+\item{save_loc}{folder names to store output, in folder `Output`}
 
-\item{total_length}{Number of all experiments}
+\item{group_length}{Number of experiments in each repetition}
+
+\item{total_length}{Total number of experiments in all repetition}
+
+\item{xtick}{Name of variables on the x axis}
+
+\item{offset}{(Not used for now) Can be index or vector of values.}
+
+\item{removed_cols}{list of columns to be removed}
 }
 \value{
 plots stored in output folder
 }
 \description{
-Plot the stacked barplot representing the abundance
+Plot the stacked barplot of abundance
 }

@@ -1,7 +1,6 @@
 #### First time run R
 install.packages("devtools")
 library("devtools")
-# library(magrittr)
 load_all()
 
 
@@ -22,12 +21,12 @@ ion_table_loc <- "A43:AB81"
 iso_table_loc <- "A84:AC305"
 
 ion_count <- readxl::read_xlsx(file_loc,
-                               range = "A43:AB81")
+                               range = ion_table_loc)
 
 iso_abun <- readxl::read_xlsx(file_loc,
-                              range = "A84:AC305")
+                              range = iso_table_loc)
 
-#### Check if tables are imported correctly
+#### Call `View` to check for the dataframe
 View(ion_count)
 View(iso_abun)
 
@@ -36,5 +35,5 @@ View(iso_abun)
 
 xtick <- c("10 EV", "10 Cre", "1 EV", "1 Cre", "U13C 10 EV", "U13C 10 Cre", "U13C 1 EV", "U13C 1 Cre")
 
-multiplied_df <- plot_abundance(ion_count, iso_abun, group_length = 8, total_length = 24, xtick = xtick,
+multiplied_df <- plot_abundance(ion_count, iso_abun, group_length = 8, total_length = 24,
                removed_cols = c(17, 21, 26, 27, 28), save_loc = "Nov19-1/")

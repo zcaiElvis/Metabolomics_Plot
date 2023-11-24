@@ -2,7 +2,7 @@
 % Please edit documentation in R/abundance.R
 \name{multiply_dfs}
 \alias{multiply_dfs}
-\title{Title}
+\title{Multiply the ion_count and iso_abun dfs}
 \usage{
 multiply_dfs(ion_count, iso_abun)
 }
@@ -12,6 +12,9 @@ multiply_dfs(ion_count, iso_abun)
 \item{iso_abun}{mass isotopomer data frame. First column contains all Fragment
 names}
 }
+\value{
+df of the multiplication result
+}
 \description{
-Title
+Multiply the ion_count and iso_abun dfs
 }

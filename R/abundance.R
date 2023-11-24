@@ -43,16 +43,17 @@ plot_multi_abundance <- function(col_groups, ion_count, iso_abun, folder_name,
 
 
 
-#' Plot the stacked barplot representing the abundance
+#' Plot the stacked barplot of abundance
 #'
 #' @param ion_count ion count data frame
 #' @param iso_abun mass isotopomer data frame. First column contains all Fragment
 #' names
-#' @param group_length Number of experiments in each repetition. First column contains
-#' names of ions
-#' @param total_length Number of all experiments
-#' @param xtick Name of X variables
-#' @param offset Can be index or vector of values. If index, then
+#' @param group_length Number of experiments in each repetition
+#' @param total_length Total number of experiments in all repetition
+#' @param xtick Name of variables on the x axis
+#' @param offset (Not used for now) Can be index or vector of values.
+#' @param removed_cols list of columns to be removed
+#' @param save_loc folder names to store output, in folder `Output`
 #' @return plots stored in output folder
 #' @export
 #'

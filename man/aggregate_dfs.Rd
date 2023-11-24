@@ -2,18 +2,21 @@
 % Please edit documentation in R/abundance.R
 \name{aggregate_dfs}
 \alias{aggregate_dfs}
-\title{Title}
+\title{Aggregate the iso abundance dataframes by mean and sem}
 \usage{
-aggregate_dfs(iso_abun, group_length, total_length)
+aggregate_dfs(iso_abun, group_length, total_length, offset, removed_cols)
 }
 \arguments{
 \item{iso_abun}{}
 
-\item{group_length}{Number of experiments in each repetition. First column contains
-names of ions}
+\item{group_length}{Number of experiments in each repetition}
 
-\item{total_length}{Number of all experiments}
+\item{total_length}{Total number of experiments in all repetition}
+
+\item{offset}{(Not used for now) Can be index or vector of values.}
+
+\item{removed_cols}{list of columns to be removed}
 }
 \description{
-Title
+Aggregate the iso abundance dataframes by mean and sem
 }
