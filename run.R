@@ -1,9 +1,12 @@
 #### First time run R
 
-# install.packages("devtools") #uncomment and run this if the next line gives error
+# install.packages("devtools") # uncomment and run this if the next line gives error
 library("devtools")
 load_all()
 
+
+install.packages("magrittr") # uncomment and run this if the next line gives error
+library("magrittr")
 
 #### Create data and output folder if not exist
 if (!dir.exists("data/")){
